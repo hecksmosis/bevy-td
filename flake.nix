@@ -1,30 +1,69 @@
-let
-	pkgs = import <nixpkgs> {};
-in
-pkgs.mkShell {
-	packages = with pkgs; [
-		cargo
-		rustc
-		rust-analyzer
-		rustfmt
-		clippy
-		gcc
-		alsa-lib
-		dbus
-		pkg-config
-		udev
-		wayland
-		libxkbcommon
-	];
+{
+  inputs = {
+    flake-utils.url = "github:numtide/flake-utils";
+    naersk.url = "github:nix-community/naersk";
+    rust-overlay.url = "github:oxalica/rust-overlay";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+  };
 
-    LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath [
-      # stdenv.cc.cc
-      pkgs.libxkbcommon
-		pkgs.vulkan-loader
-    ];
+  outputs = { self, flake-utils, naersk, nixpkgs, rust-overlay }:
+    flake-utils.lib.eachDefaultSystem (system:
+      let
+        overlays = [ (import rust-overlay) ];
+        pkgs = (import nixpkgs) {
+          inherit system overlays;
+        };
+        naersk' = pkgs.callPackage naersk { };
+        buildInputs = with pkgs; [
+          vulkan-loader
+          xorg.libXcursor
+          xorg.libXi
+          xorg.libXrandr
+          libxkbcommon
+          zstd
+          wayland
+          alsa-lib
+          udev
+          pkg-config
+        ];
+        nativeBuildInputs = with pkgs; [
+          (rust-bin.selectLatestNightlyWith
+            (toolchain: toolchain.default.override {
+              extensions = [ "rust-src" "clippy" ];
+            }))
+        ];
+        all_deps = with pkgs; [
+          cargo-flamegraph
+          cargo-expand
+          nixpkgs-fmt
+          cmake
+        ] ++ buildInputs ++ nativeBuildInputs;
+      in
+      rec {
+        # For `nix build` & `nix run`:
+        defaultPackage = packages.bevy_template;
+        packages = rec {
+          bevy_template = naersk'.buildPackage {
+            src = ./.;
+            nativeBuildInputs = nativeBuildInputs;
+            buildInputs = buildInputs;
+            postInstall = ''
+              cp -r assets $out/bin/
+            '';
+            # Disables dynamic linking when building with Nix
+            cargoBuildOptions = x: x ++ [ "--no-default-features" ];
+          };
+        };
 
-	env = { 
-		RUST_BACKTRACE = "full";
-		WINIT_UNIX_BACKEND="wayland";
-	}; 
+        # For `nix develop`:
+        devShell = pkgs.mkShell {
+          nativeBuildInputs = all_deps;
+          shellHook = ''
+            export CARGO_MANIFEST_DIR=$(pwd)
+            export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:${pkgs.lib.makeLibraryPath all_deps}"
+          '';
+        };
+      }
+    );
 }
+
