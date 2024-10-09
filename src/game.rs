@@ -1,8 +1,13 @@
 use bevy::prelude::*;
+use bevy_mod_picking::DefaultPickingPlugins;
+use bevy_rapier3d::prelude::*;
 
 use crate::{
     camera_controller::CameraControllerPlugin,
     constants::{WINDOW_HEIGHT, WINDOW_WIDTH},
+    currency::CurrencyPlugin,
+    select_tile::SelectTilePlugin,
+    ui::UIPlugin,
     world::WorldPlugin,
 };
 
@@ -22,14 +27,12 @@ impl Plugin for GamePlugin {
             }),
             WorldPlugin,
             CameraControllerPlugin,
-        ))
-        .add_systems(Startup, make_camera);
+            SelectTilePlugin,
+            DefaultPickingPlugins,
+            RapierPhysicsPlugin::<NoUserData>::default(),
+            RapierDebugRenderPlugin::default(),
+            CurrencyPlugin,
+            UIPlugin,
+        ));
     }
-}
-
-#[derive(Component)]
-struct GameCamera;
-
-fn make_camera(mut commands: Commands) {
-    commands.spawn((GameCamera, Camera3dBundle::default()));
 }

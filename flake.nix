@@ -27,6 +27,7 @@
           pkg-config
         ];
         nativeBuildInputs = with pkgs; [
+          rust-analyzer
           (rust-bin.selectLatestNightlyWith
             (toolchain: toolchain.default.override {
               extensions = [ "rust-src" "clippy" ];
