@@ -25,7 +25,7 @@ fn make_ui(mut commands: Commands, currency: Res<Currency>) {
         })
         .with_children(|parent| {
             parent.spawn((
-                TextBundle::from_section(format!("Money: {}", currency.wood), TextStyle::default()),
+                TextBundle::from_section(format!("Wood: {}", currency.wood), TextStyle::default()),
                 Label,
                 CurrencyCounter,
             ));

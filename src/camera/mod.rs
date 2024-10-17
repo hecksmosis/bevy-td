@@ -6,22 +6,26 @@ impl Plugin for CameraControllerPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, spawn_camera).add_systems(
             Update,
-            pan_orbit_camera.run_if(any_with_component::<PanOrbitState>),
+            (
+                pan_orbit_camera.run_if(any_with_component::<PanOrbitState>),
+                debug_camera,
+            ),
         );
     }
 }
 
-#[derive(Component)]
-struct GameCamera;
+#[derive(Component, Default)]
+pub struct GameCamera;
 
 #[derive(Bundle, Default)]
 pub struct PanOrbitCameraBundle {
     pub camera: Camera3dBundle,
     pub state: PanOrbitState,
     pub settings: PanOrbitSettings,
+    pub label: GameCamera,
 }
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct PanOrbitState {
     pub center: Vec3,
     pub radius: f32,
@@ -80,9 +84,9 @@ impl Default for PanOrbitSettings {
 
 fn spawn_camera(mut commands: Commands) {
     let mut camera = PanOrbitCameraBundle::default();
-    camera.state.center = Vec3::new(1.0, 2.0, 3.0);
+    camera.state.center = Vec3::new(1.0, 0.0, 3.0);
     camera.state.radius = 50.0;
-    camera.state.pitch = 15.0f32.to_radians();
+    camera.state.pitch = -45.0f32.to_radians();
     camera.state.yaw = 30.0f32.to_radians();
     commands.spawn(camera);
 }
@@ -211,4 +215,13 @@ fn pan_orbit_camera(
             transform.translation = state.center + transform.back() * state.radius;
         }
     }
+}
+
+fn debug_camera(keys: Res<ButtonInput<KeyCode>>, camera: Query<&PanOrbitState, With<GameCamera>>) {
+    if !keys.just_pressed(KeyCode::KeyD) {
+        return;
+    }
+    camera.iter().for_each(|camera| {
+        debug!("{:?}", camera);
+    })
 }

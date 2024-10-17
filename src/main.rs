@@ -1,12 +1,13 @@
 use bevy::prelude::*;
 use game::GamePlugin;
 
-mod camera_controller;
+mod camera;
 mod constants;
 mod currency;
 mod game;
 mod select_tile;
 mod ui;
+mod util;
 mod world;
 
 fn main() {

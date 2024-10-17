@@ -3,11 +3,12 @@ use bevy_mod_picking::DefaultPickingPlugins;
 use bevy_rapier3d::prelude::*;
 
 use crate::{
-    camera_controller::CameraControllerPlugin,
+    camera::CameraControllerPlugin,
     constants::{WINDOW_HEIGHT, WINDOW_WIDTH},
     currency::CurrencyPlugin,
     select_tile::SelectTilePlugin,
     ui::UIPlugin,
+    util::NotifyPlugin,
     world::WorldPlugin,
 };
 
@@ -33,6 +34,7 @@ impl Plugin for GamePlugin {
             RapierDebugRenderPlugin::default(),
             CurrencyPlugin,
             UIPlugin,
+            NotifyPlugin,
         ));
     }
 }

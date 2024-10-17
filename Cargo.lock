@@ -3786,6 +3786,8 @@ dependencies = [
  "bevy",
  "bevy_mod_picking",
  "bevy_rapier3d",
+ "itertools",
+ "lazy_static",
 ]
 
 [[package]]

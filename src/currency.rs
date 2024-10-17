@@ -1,6 +1,10 @@
 use bevy::prelude::*;
 
-use crate::{constants::TOWER_TS, select_tile::TileType, ui::CurrencyCounter};
+use crate::{
+    constants::{FARM_PRODUCTION, TOWER_TS},
+    select_tile::TileType,
+    ui::CurrencyCounter,
+};
 
 pub struct CurrencyPlugin;
 
@@ -38,8 +42,8 @@ fn collect_towers(
     if !tower_timer.0.tick(time.delta()).just_finished() {
         return;
     }
-    query.iter().filter_map(|l| l.tile()).for_each(|tower| {
-        currency.wood += 5 * tower;
+    query.iter().filter_map(|l| l.farm()).for_each(|farm| {
+        currency.wood += FARM_PRODUCTION * farm;
     })
 }
 
